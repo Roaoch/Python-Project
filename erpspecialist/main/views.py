@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from .utils import get_data
+import requests
 
 
 def index(req):
@@ -18,4 +20,11 @@ def skills(req):
 
 
 def latest(req):
-    return render(req, 'main/latest.html')
+    payload = {
+        'text': 'erp',
+        'search_field': 'name',
+        'order_by': 'publication_time',
+        'only_with_salary': 'true'
+    }
+    data = get_data(requests.get('https://api.hh.ru/vacancies', params=payload))
+    return render(req, 'main/latest.html', {'data': data})
