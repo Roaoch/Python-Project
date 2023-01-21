@@ -3,3 +3,30 @@
 {% block title %}
     Последние вакансии
 {% endblock %}
+
+{% block content %}
+    <div class="row mt-5">
+        <table class="table table-dark table-striped">
+            <tr>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Навыки</th>
+                <th>Компания</th>
+                <th>Оклад от</th>
+                <th>Название региона</th>
+                <th>Дату публикации</th>
+            </tr>
+            {% for vacancy in data %}
+                <tr>
+                    <th>{{ vacancy.name }}</th>
+                    <td>{{ vacancy.description }}</td>
+                    <td>{{ vacancy.key_skills }}</td>
+                    <td>{{ vacancy.employer.name }}</td>
+                    <td>{{ vacancy.salary.from }}</td>
+                    <td>{{ vacancy.area.name }}</td>
+                    <td>{{ vacancy.published_at }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
