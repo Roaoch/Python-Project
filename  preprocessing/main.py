@@ -1,46 +1,37 @@
-from input_connect import InputConnect
 from report import Report
-from errors import OutOfDataError, SortParameterError, SortWayError, InstructionError
+from statistics import Statistics
 
 
-try:
-    input_connect = InputConnect()
-    if input_connect.is_statistic:
-        report = Report()
+stat = Statistics([
+    'erp',
+    'enterprise resource planning',
+    'abap',
+    'crm',
+    'help desk',
+    'helpdesk',
+    'service desk',
+    'servicedesk',
+    'bi',
+    'sap'
+], 'vacancies_with_skills.csv')
 
-        report.generate_excel(
-            input_connect.all_salary_level,
-            input_connect.all_vacancies_count,
-            input_connect.salary_level,
-            input_connect.vacancies_count,
-            input_connect.by_city_level,
-            input_connect.vacancies_part
-        )
-        report.generate_image(
-            input_connect.filter_parameter,
-            input_connect.all_salary_level,
-            input_connect.all_vacancies_count,
-            input_connect.salary_level,
-            input_connect.vacancies_count,
-            input_connect.by_city_level,
-            input_connect.vacancies_part
-        )
-        report.generate_pdf(input_connect.filter_parameter)
-        input_connect.print_self()
-except StopIteration:
-    print("Пустой файл")
-except IOError:
-    print("Формат ввода некорректен")
-except SortParameterError:
-    print("Параметр сортировки некорректен")
-except SortWayError:
-    print("Порядок сортировки задан некорректно")
-except KeyError:
-    print("Параметр поиска некорректен")
-except AssertionError:
-    print("Ничего не найдено")
-except InstructionError:
-    print("Неверная комманда")
-except OutOfDataError:
-    print("Нет данных")
-#ggggggggggggggg
+report = Report()
+report.generate_excel(
+    stat.all_salary_level,
+    stat.all_vacancies_count,
+    stat.salary_level,
+    stat.vacancies_count,
+    stat.by_city_level,
+    stat.vacancies_part,
+    stat.year_skills
+)
+report.generate_image(
+    'ERP-специалист',
+    stat.all_salary_level,
+    stat.all_vacancies_count,
+    stat.salary_level,
+    stat.vacancies_count,
+    stat.by_city_level,
+    stat.vacancies_part,
+    stat.year_skills
+)

@@ -3,3 +3,46 @@
 {% block title %}
     География
 {% endblock %}
+
+{% block content %}
+    <div class="row mt-5">
+        <div class="row row-cols-2 justify-content-between">
+            <div class="col">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Город</th>
+                        <th>Уровень зарплат по городам (в порядке убывания)</th>
+                    </tr>
+                    {% for row in data %}
+                        <tr>
+                            <th>{{ row.city_salary }}</th>
+                            <td>{{ row.salary }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col">
+                <img src="{{images.city_salary.url}}" style="width:100%">
+            </div>
+        </div>
+        <div class="row row-cols-2 mt-5">
+            <div class="col order-5">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Город</th>
+                        <th>Доля вакансий по городам (в порядке убывания)</th>
+                    </tr>
+                    {% for row in data %}
+                        <tr>
+                            <th>{{ row.city_part }}</th>
+                            <td>{{ row.part }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col">
+                <img src="{{images.city_part.url}}" style="width:100%">
+            </div>
+        </div>
+    </div>
+{% endblock %}
