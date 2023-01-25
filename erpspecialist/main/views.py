@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .utils import get_data
+from .models import ByYearStatistic, ByCityStatistic, SkillStatistic, Images
 import requests
 
 
@@ -8,15 +9,21 @@ def index(req):
 
 
 def demands(req):
-    return render(req, 'main/demands.html')
+    data = ByYearStatistic.objects.all()
+    images = Images.objects.get()
+    return render(req, 'main/demands.html', {'data': data, 'images': images})
 
 
 def geography(req):
-    return render(req, 'main/geography.html')
+    data = ByCityStatistic.objects.all()
+    images = Images.objects.get()
+    return render(req, 'main/geography.html', {'data': data, 'images': images})
 
 
 def skills(req):
-    return render(req, 'main/skills.html')
+    data = SkillStatistic.objects.all()
+    images = Images.objects.get()
+    return render(req, 'main/skills.html', {'data': data, 'images': images})
 
 
 def latest(req):

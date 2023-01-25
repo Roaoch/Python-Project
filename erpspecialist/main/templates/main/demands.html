@@ -3,3 +3,50 @@
 {% block title %}
     Востребованность
 {% endblock %}
+
+{% block content %}
+    <div class="row mt-5">
+        <div class="row row-cols-2 justify-content-between">
+            <div class="col">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Год</th>
+                        <th>Динамика уровня зарплат по годам</th>
+                        <th>Динамика уровня зарплат по годам для выбранной профессии</th>
+                    </tr>
+                    {% for row in data %}
+                        <tr>
+                            <th>{{ row.year }}</th>
+                            <td>{{ row.salary_by_year }}</td>
+                            <td>{{ row.vac_salary_by_year }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col">
+                <img src="{{images.year_salary.url}}" style="width:100%">
+            </div>
+        </div>
+        <div class="row row-cols-2 mt-5">
+            <div class="col order-5">
+                <table class="table table-striped">
+                    <tr>
+                        <th>Год</th>
+                        <th>Динамика количества вакансий по годам</th>
+                        <th>Динамика количества вакансий по годам для выбранной профессии</th>
+                    </tr>
+                    {% for row in data %}
+                        <tr>
+                            <th>{{ row.year }}</th>
+                            <td>{{ row.count_by_year }}</td>
+                            <td>{{ row.vac_count_by_year }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col">
+                <img src="{{images.year_count.url}}" style="width:100%">
+            </div>
+        </div>
+    </div>
+{% endblock %}

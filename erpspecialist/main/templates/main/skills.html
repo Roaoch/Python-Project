@@ -3,3 +3,23 @@
 {% block title %}
     Навыки
 {% endblock %}
+
+{% block content %}
+    <div class="row mt-5 justify-content-center">
+        <div class="col">
+            <img src="{{images.year_skills.url}}" style="width:100%">
+            <table class="table table-striped mt-2">
+                <tr>
+                    <th>Год</th>
+                    <th>Топ 10 навыков</th>
+                </tr>
+                {% for row in data %}
+                    <tr>
+                        <th>{{ row.year }}</th>
+                        <td>{{ row.skills }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

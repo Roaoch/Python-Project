@@ -1,17 +1,14 @@
 import matplotlib.pyplot as plt
-import pdfkit
-import pathlib
 from utils import Utils
-from jinja2 import Environment, FileSystemLoader
-from typing import Dict
+from typing import Dict, List
 from openpyxl import Workbook
-from openpyxl.styles import Border, Font, Alignment, Side
-from openpyxl.utils import get_column_letter
 
 
 class Report:
     def __init__(self):
-        self.workbook = Workbook()
+        self.workbook_year = Workbook()
+        self.workbook_city = Workbook()
+        self.workbook_skills = Workbook()
 
     def generate_excel(
             self,
@@ -20,25 +17,29 @@ class Report:
             salary_level: Dict[str, int],
             vacancies_count: Dict[str, int],
             by_city_level: Dict[str, float],
-            vacancies_part: Dict[str, float]
+            vacancies_part: Dict[str, float],
+            year_skills: Dict[str, List[str]]
     ) -> None:
-        self.workbook.active.title = "Статистика по годам"
-        self.workbook.create_sheet("Статистика по городам", 1)
         self.__make_year(
-            self.workbook["Статистика по годам"],
+            self.workbook_year.active,
             all_salary_level,
             all_vacancies_count,
             salary_level,
             vacancies_count
         )
         self.__make_city(
-            self.workbook["Статистика по городам"],
+            self.workbook_city.active,
             Utils.slice_dict(by_city_level, 10),
             Utils.slice_dict(vacancies_part, 10)
         )
-        self.__stylizing_xlsx()
+        self.__make_skills(
+            self.workbook_skills.active,
+            year_skills
+        )
 
-        self.workbook.save("report.xlsx")
+        self.workbook_year.save("output/year.xlsx")
+        self.workbook_city.save("output/city.xlsx")
+        self.workbook_skills.save("output/skills.xlsx")
 
     def generate_image(
             self,
@@ -48,13 +49,15 @@ class Report:
             salary_level: Dict[str, int],
             vacancies_count: Dict[str, int],
             by_city_level: Dict[str, float],
-            vacancies_part: Dict[str, float]
+            vacancies_part: Dict[str, float],
+            year_skills: Dict[str, List[str]]
     ) -> None:
-        fig = plt.figure()
-        salary_year = fig.add_subplot(2, 2, 1)
-        vacancies_year = fig.add_subplot(2, 2, 2)
-        salary_city = fig.add_subplot(2, 2, 3)
-        part_city = fig.add_subplot(2, 2, 4)
+        fig = plt.figure(dpi=400, figsize=[17, 12])
+        salary_year = fig.add_subplot(331)
+        vacancies_year = fig.add_subplot(332)
+        salary_city = fig.add_subplot(333)
+        part_city = fig.add_subplot(334)
+        skills = fig.add_subplot(335)
 
         salary_year.bar(
             [int(e) - 0.2 for e in all_salary_level.keys()],
@@ -96,36 +99,43 @@ class Report:
             textprops={'fontsize': 6}
         )
 
+        x = [key for key, value in year_skills.items() for i in value]
+        y = [item for sublist in year_skills.values() for item in sublist]
+        skills.scatter(x, y, s=20, c='#1f77b4', marker='s')
+
         self.__format_histograms(
             salary_year,
             vacancies_year,
             salary_city,
-            part_city
+            part_city,
+            skills
         )
-        fig.tight_layout()
-        plt.savefig('graph.png')
 
-    def generate_pdf(
-            self,
-            vacancy_name
-    ) -> None:
-        env = Environment(loader=FileSystemLoader("."))
-        template = env.get_template("pdf_template.html")
-        pdf_template = template.render({
-            "vacancy_name": vacancy_name,
-            "img": pathlib.Path("graph.png").resolve().__str__(),
-            "workbook": self.workbook
-        })
+        fig.tight_layout(pad=7.1)
 
-        config = pdfkit.configuration(wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
-        pdfkit.from_string(pdf_template, "report.pdf", configuration=config, options={"enable-local-file-access": True})
+        extent1 = self.__get_bound(salary_year, fig)
+        extent2 = self.__get_bound(vacancies_year, fig)
+        extent3 = self.__get_bound(salary_city, fig)
+        extent4 = self.__get_bound(part_city, fig)
+        extent5 = self.__get_bound(skills, fig)
+
+        fig.savefig('output/year1.jpeg', bbox_inches=extent1)
+        fig.savefig('output/year2.jpeg', bbox_inches=extent2)
+        fig.savefig('output/city1.jpeg', bbox_inches=extent3)
+        fig.savefig('output/city2.jpeg', bbox_inches=extent4)
+        fig.savefig('output/skills.jpeg', bbox_inches=extent5)
+
+    @staticmethod
+    def __get_bound(plot, fig):
+        return plot.get_window_extent().transformed(fig.dpi_scale_trans.inverted()).expanded(1.4, 1.4)
 
     @staticmethod
     def __format_histograms(
             salary_year,
             vacancies_year,
             salary_city,
-            part_city
+            part_city,
+            skills
     ) -> None:
         salary_year.set_title("Уровень зарплат по годам")
         salary_year.grid(axis='y')
@@ -149,28 +159,9 @@ class Report:
 
         part_city.set_title("Доля вакансий по городам")
 
-    def __stylizing_xlsx(self) -> None:
-        bd = Side(style='thin', color="000000")
-        for sheet in self.workbook:
-            column_widths = []
-            for row_count, row in enumerate(sheet.iter_rows()):
-                for i, cell in enumerate(row):
-                    cell.border = Border(left=bd, top=bd, right=bd, bottom=bd)
-                    if row_count == 0:
-                        cell.font = Font(bold=True)
-                    else:
-                        cell.alignment = Alignment(horizontal="right")
-                    if len(column_widths) > i:
-                        if len(str(cell.value)) > column_widths[i]:
-                            column_widths[i] = len(str(cell.value))
-                    else:
-                        column_widths += [len(str(cell.value))]
-
-            for i, column_width in enumerate(column_widths, 1):
-                sheet.column_dimensions[get_column_letter(i)].width = column_width + 4
-
-        for percent_cell in self.workbook["Статистика по городам"]["E"]:
-            percent_cell.number_format = "0.00%"
+        skills.set_title('ТОП-10 навыков по годам')
+        skills.tick_params(labelsize=4)
+        skills.grid(True, axis='y')
 
     @staticmethod
     def __make_year(
@@ -180,13 +171,6 @@ class Report:
             salary_level: Dict[str, int],
             vacancies_count: Dict[str, int]
     ) -> None:
-        worksheet.append([
-            "Год",
-            "Динамика уровня зарплат по годам",
-            "Динамика количества вакансий по годам",
-            "Динамика уровня зарплат по годам для выбранной профессии",
-            "Динамика количества вакансий по годам для выбранной профессии"
-        ])
         for key in all_salary_level.keys():
             worksheet.append([
                 key,
@@ -202,13 +186,6 @@ class Report:
             by_city_level: Dict[str, float],
             vacancies_part: Dict[str, float]
     ) -> None:
-        worksheet.append([
-            "Город",
-            "Уровень зарплат по городам (в порядке убывания)",
-            "",
-            "Город",
-            "Доля вакансий по городам (в порядке убывания)"
-        ])
         level_keys = list(by_city_level.keys())
         part_keys = list(vacancies_part.keys())
         for i in range(len(level_keys)):
@@ -217,7 +194,14 @@ class Report:
             worksheet.append([
                 level_key,
                 by_city_level[level_key],
-                "",
                 part_key,
                 vacancies_part[part_key]
+            ])
+
+    @staticmethod
+    def __make_skills(worksheet, year_skills: Dict[str, List[str]]):
+        for key in year_skills.keys():
+            worksheet.append([
+                key,
+                ', '.join(year_skills[key])
             ])
