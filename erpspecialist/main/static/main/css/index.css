@@ -1,7 +1,16 @@
+.description {
+    margin: 120px 0;
+}
+
 .description-par {
     font-weight: 300;
 }
 
 .charge-list {
     list-style: none;
+}
+
+.cover-img {
+    margin-left: -16.668vw;
+    width: 100vw;
 }
